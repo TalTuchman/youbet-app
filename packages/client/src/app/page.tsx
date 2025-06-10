@@ -45,6 +45,7 @@ export default function HomePage() {
       setMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
+console.log('API URL FROM ENV:', process.env.NEXT_PUBLIC_API_URL);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-900 text-white">
