@@ -9,14 +9,41 @@ export default function HomePage() {
 
   const handleSignup = async (email: string, password: string) => {
     setMessage('Signing up...');
-    console.log('Signup attempted with:', { email, password });
-    // API call will go here soon
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // If the response is not OK (e.g., 400, 403, 500), use the error message from the backend
+        throw new Error(data.message || 'Something went wrong');
+      }
+      setMessage(`Signup successful! Welcome, ${data.email}. Your ID is ${data.id}.`);
+    } catch (error) {
+      setMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    }
   };
 
   const handleLogin = async (email: string, password: string) => {
     setMessage('Logging in...');
-    console.log('Login attempted with:', { email, password });
-    // API call will go here soon
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+      // Truncate the token for display purposes
+      const truncatedToken = data.access_token.substring(0, 30);
+      setMessage(`Login successful! Token: ${truncatedToken}...`);
+    } catch (error) {
+      setMessage(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    }
   };
 
   return (
