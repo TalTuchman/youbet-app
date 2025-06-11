@@ -1,22 +1,31 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config'; // <-- IMPORT ConfigService
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
-    private prisma: PrismaService,
-    private config: ConfigService, // <-- INJECT ConfigService
-  ) {
+  constructor(private prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // Use the get() method which guarantees a string
-      secretOrKey: config.get<string>('JWT_SECRET'), // <-- CHANGE THIS LINE
+      secretOrKey: config.get<string>('JWT_SECRET'),
     });
   }
 
-  // ... (validate method remains the same)
-  async validate(payload: { sub: number; email: string }) { /* ... */ }
+  async validate(payload: { sub: number; email: string }) {
+    // This is where we turn the token payload into a real user object
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    // Important: We don't want to send the password hash back
+    delete user.passwordHash; 
+
+    // NestJS will attach this 'user' object to the request object
+    return user;
+  }
 }
