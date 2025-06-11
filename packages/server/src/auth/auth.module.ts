@@ -3,20 +3,19 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule } from '@nestjs/config';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
-    ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET, // Use the secret from our .env file
-      signOptions: {
-        expiresIn: '1d', // Token will be valid for 1 day
-      },
+      // This section is now only used for SIGNING tokens in the AuthService,
+      // not for VERIFYING them in the strategy.
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy], // JwtStrategy no longer has a dependency issue
 })
 export class AuthModule {}
