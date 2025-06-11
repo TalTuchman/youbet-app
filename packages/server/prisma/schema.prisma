@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Our User Model
 model User {
   id           Int      @id @default(autoincrement())
   createdAt    DateTime @default(now())
@@ -20,4 +16,28 @@ model User {
   passwordHash String
 
   balance      Float   @default(0.0)
+
+  // Relation: A User can create many bets
+  createdBets  Bet[]   @relation("CreatorBets")
+}
+
+// ADD THIS ENTIRE NEW MODEL
+model Bet {
+  id                 Int      @id @default(autoincrement())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  description        String
+  outcomeDate        DateTime
+
+  creatorId          Int
+  creator            User     @relation("CreatorBets", fields: [creatorId], references: [id])
+
+  isPublic           Boolean  @default(true)
+
+  // Bet-specific fields from our blueprint
+  baseStake          Int      // e.g., $10
+  oddsX              Int      // e.g., 1 (for a 1:2 ratio)
+  oddsY              Int      // e.g., 2
+  maxJoiners         Int      // e.g., 5
 }
